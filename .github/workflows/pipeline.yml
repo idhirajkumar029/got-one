@@ -1,0 +1,56 @@
+name: CI & DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  devsecops-security:
+    name: Security & Secret Scan (DevSecOps)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # DevSecOps Check 1: Detect leaked API keys or passwords
+      - name: Secret Scan (TruffleHog)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+      # DevSecOps Check 2: Software Composition Analysis (SCA)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Audit Dependencies for CVEs
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-audit
+          pip-audit -r requirements.txt
+
+  devops-ci:
+    name: Continuous Integration & Tests (DevOps)
+    needs: devsecops-security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Execute Test Suite
+        run: |
+          pytest test_app.py -v
