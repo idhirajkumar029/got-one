@@ -5,3 +5,6 @@ def calculate_margin(revenue: float, cost: float) -> float:
 
 if __name__ == "__main__":
     print(f"Margin: {calculate_margin(100, 70)}%")
+
+def calculate_gross_profit(revenue: float, cost: float) -> float:
+    return round(revenue - cost, 2)
